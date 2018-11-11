@@ -2,7 +2,7 @@
 
 const postcss = require('postcss');
 
-module.exports = function (plugins) {
+module.exports = function (NAMESPACE, plugins) {
     return function (source, meta) {
         const callback = this.async();
         this.cacheable();
