@@ -69,6 +69,21 @@ module.export = (NAMESPACE, plugin) => class Plugin {
             }
         });
     }
+    optimizeExtractedChunks(chunks) {
+        const data = this.data;
+        const replaceReg = this.replaceReg;
+        chunks.forEach((chunk) => {
+            const modules = !chunk.mapModules ? chunk._modules : chunk.mapModules();
+            modules.filter((module) => '_originalModule' in module).forEach((module) => {
+                const source = module._source;
+                if (typeof source === 'string') {
+                    module._source = this.replaceStringHolder(source, replaceReg, data);
+                } else if (source instanceof Object && typeof source._value === 'string') {
+                    source._value = this.replaceStringHolder(source._value, replaceReg, data);
+                }
+            });
+        });
+    }
     replaceStringHolder(value, replaceReg, data) {
         return value.replace(replaceReg, ($1, $2) => data[$2] || $1);
     }
