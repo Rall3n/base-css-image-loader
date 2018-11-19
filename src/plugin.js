@@ -1,11 +1,22 @@
+'use strict';
+
 const { compilerHooks, asyncHooks, compilationHooks } = require('./event.js');
 const ReplaceDependency = require('./replaceDependency.js');
 const NullFactory = require('webpack/lib/NullFactory');
 const getAllModules = require('./getAllModules');
+const utils = require('./utils');
+const path = require('path');
 
-module.export = (NAMESPACE, plugin) => class Plugin {
+module.exports = (NAMESPACE, plugin) => class Plugin {
     constructor(options) {
-        plugin.init.call(this, options);
+        this.data = {};
+        this.options = Object.assign({
+            output: './',
+            filename: '[name].[ext]?[hash]',
+            publicPath: undefined,
+        }, options);
+        if (plugin.init instanceof Function)
+            plugin.init.call(this, options);
     }
     apply(compiler) {
         for (const hook of compilerHooks) {
@@ -21,7 +32,8 @@ module.export = (NAMESPACE, plugin) => class Plugin {
             }
             compilation.hooks.afterOptimizeChunks.tap(NAMESPACE, (chunks) => this.afterOptimizeChunks(chunks, compilation));
         });
-        plugin.apply().call(this, compiler);
+        if (plugin.apply instanceof Function)
+            plugin.apply.call(this, compiler);
     }
     plugin(obj, name, callBack) {
         if (obj.hooks) {
@@ -35,7 +47,7 @@ module.export = (NAMESPACE, plugin) => class Plugin {
         }
     }
     afterOptimizeChunks(chunks, compilation) {
-        const fontCodePoints = this.data;
+        const data = this.data;
         const allModules = getAllModules(compilation);
         const replaceReg = this.replaceReg;
         allModules.filter((module) => {
@@ -49,15 +61,15 @@ module.export = (NAMESPACE, plugin) => class Plugin {
         }).forEach((module) => {
             if (module.thisModuleIsCssModule && module.content) {
                 const content = module.content;
-                module.content = this.replaceStringHolder(content, replaceReg, fontCodePoints);
+                module.content = this.replaceStringHolder(content, replaceReg, data);
             } else {
                 const source = module._source;
                 let range = [];
                 const replaceDependency = module.dependencies.filter((dependency) => dependency.constructor === ReplaceDependency)[0];
                 if (typeof source === 'string') {
-                    range = this.replaceHolder(source, replaceReg, fontCodePoints);
+                    range = this.replaceHolder(source, replaceReg, data);
                 } else if (source instanceof Object && typeof source._value === 'string') {
-                    range = this.replaceHolder(source._value, replaceReg, fontCodePoints);
+                    range = this.replaceHolder(source._value, replaceReg, data);
                 }
                 if (range.length > 0) {
                     if (replaceDependency) {
@@ -103,5 +115,19 @@ module.export = (NAMESPACE, plugin) => class Plugin {
             return $1;
         });
         return rangeList;
+    }
+    getFileName(options) {
+        return utils.createFileName(this.options.filename, options);
+    }
+    getFilePath(fileName, compilation) {
+        const urlPath = this.options.output;
+        let url = '/';
+        if (this.options.publicPath)
+            url = utils.urlResolve(this.options.publicPath, fileName);
+        else
+            url = utils.urlResolve(compilation.options.output.publicPath || '', path.join(urlPath, fileName));
+        if (path.sep === '\\')
+            url = url.replace(/\\/g, '/');
+        return url;
     }
 };
