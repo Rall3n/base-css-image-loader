@@ -1,40 +1,21 @@
 'use strict';
 
-const { compilerHooks, asyncHooks, compilationHooks } = require('./event.js');
+const { asyncHooks } = require('./event.js');
 const ReplaceDependency = require('./replaceDependency.js');
 const NullFactory = require('webpack/lib/NullFactory');
 const getAllModules = require('./getAllModules');
 const utils = require('./utils');
 const path = require('path');
 
-module.exports = (NAMESPACE, plugin) => class Plugin {
-    constructor(options) {
-        this.data = {};
-        this.options = Object.assign({
-            output: './',
-            filename: '[name].[ext]?[hash]',
-            publicPath: undefined,
-        }, options);
-        if (plugin.init instanceof Function)
-            plugin.init.call(this, options);
-    }
+module.exports = ({ NAMESPACE, MODULEMARK, REPLACEREG }) => ({
     apply(compiler) {
-        for (const hook of compilerHooks) {
-            if (plugin[hook] instanceof Function)
-                this.plugin(compiler, hook, plugin[hook].bind(this));
-        }
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());
             compilation.dependencyTemplates.set(ReplaceDependency, ReplaceDependency.Template);
-            for (const hook of compilationHooks) {
-                if (plugin[hook] instanceof Function)
-                    this.plugin(compilation, hook, plugin[hook].bind(this));
-            }
-            compilation.hooks.afterOptimizeChunks.tap(NAMESPACE, (chunks) => this.afterOptimizeChunks(chunks, compilation));
+            this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.afterOptimizeChunks(chunks, compilation));
         });
-        if (plugin.apply instanceof Function)
-            plugin.apply.call(this, compiler);
-    }
+        return this;
+    },
     plugin(obj, name, callBack) {
         if (obj.hooks) {
             if (asyncHooks.indexOf(name) !== -1)
@@ -45,11 +26,11 @@ module.exports = (NAMESPACE, plugin) => class Plugin {
             name = name.match(/([A-Z]{0,1}[a-z]*)/g).filter((item, index) => item !== '').map((item) => item.toLowerCase()).join('-');
             obj.plugin(name, callBack);
         }
-    }
+    },
     afterOptimizeChunks(chunks, compilation) {
         const data = this.data;
         const allModules = getAllModules(compilation);
-        const replaceReg = this.replaceReg;
+        const replaceReg = REPLACEREG;
         allModules.filter((module) => {
             // hack for min-css-extract-plugin, this plugin's identifier start with 'css'
             const identifier = module.identifier();
@@ -57,7 +38,10 @@ module.exports = (NAMESPACE, plugin) => class Plugin {
                 module.thisModuleIsCssModule = true;
                 return true;
             }
-            return module[NAMESPACE + 'Moudle'];
+            if (MODULEMARK) {
+                return module[MODULEMARK];
+            }
+            return true;
         }).forEach((module) => {
             if (module.thisModuleIsCssModule && module.content) {
                 const content = module.content;
@@ -80,10 +64,10 @@ module.exports = (NAMESPACE, plugin) => class Plugin {
                 }
             }
         });
-    }
+    },
     optimizeExtractedChunks(chunks) {
         const data = this.data;
-        const replaceReg = this.replaceReg;
+        const replaceReg = REPLACEREG;
         chunks.forEach((chunk) => {
             const modules = !chunk.mapModules ? chunk._modules : chunk.mapModules();
             modules.filter((module) => '_originalModule' in module).forEach((module) => {
@@ -95,10 +79,10 @@ module.exports = (NAMESPACE, plugin) => class Plugin {
                 }
             });
         });
-    }
+    },
     replaceStringHolder(value, replaceReg, data) {
         return value.replace(replaceReg, ($1, $2) => data[$2] || $1);
-    }
+    },
     replaceHolder(value, replaceReg, data) {
         const rangeList = [];
         const haveChecked = [];
@@ -115,10 +99,10 @@ module.exports = (NAMESPACE, plugin) => class Plugin {
             return $1;
         });
         return rangeList;
-    }
+    },
     getFileName(options) {
         return utils.createFileName(this.options.filename, options);
-    }
+    },
     getFilePath(fileName, compilation) {
         const urlPath = this.options.output;
         let url = '/';
@@ -129,5 +113,5 @@ module.exports = (NAMESPACE, plugin) => class Plugin {
         if (path.sep === '\\')
             url = url.replace(/\\/g, '/');
         return url;
-    }
-};
+    },
+});

@@ -17,8 +17,8 @@ module.exports = function (plugins) {
                 annotation: false,
             };
         }
-        plugins = plugins.map((plugin) => plugin({ loaderContext: this }));
-        postcss(plugins).process(source, options).then((result) => {
+        const pluginsList = plugins.map((plugin) => plugin({ loaderContext: this }));
+        postcss(pluginsList).process(source, options).then((result) => {
             const map = result.map && result.map.toJSON();
             callback(null, result.css, map);
             return null;
