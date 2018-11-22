@@ -19,8 +19,8 @@ module.exports = class BasePlugin {
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());
             compilation.dependencyTemplates.set(ReplaceDependency, ReplaceDependency.Template);
-            this.plugin(compilation, 'optimizeExtractedChunks', (chunks) => this.replaceExtractedMoudle(chunks));
-            this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.replaceMoudle(chunks, compilation));
+            this.plugin(compilation, 'optimizeExtractedChunks', (chunks) => this.replaceExtractedModule(chunks));
+            this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.replaceModule(chunks, compilation));
         });
     }
     plugin(obj, name, callBack) {
@@ -34,17 +34,17 @@ module.exports = class BasePlugin {
             obj.plugin(name, callBack);
         }
     }
-    replaceMoudle(chunks, compilation) {
+    replaceModule(chunks, compilation) {
         // minCssPlugin's module's content is string, and is different from normal module source value
         const data = this.data;
         const strData = this.strData;
         const allModules = getAllModules(compilation);
         if (data)
-            this.replaceInMoudle(allModules, data);
+            this.replaceInModule(allModules, data);
         if (strData)
-            this.replaceMinCssMoudle(allModules, strData);
+            this.replaceMinCssModule(allModules, strData);
     }
-    replaceInMoudle(modules, data) {
+    replaceInModule(modules, data) {
         const replaceReg = this.REPLACEREG;
         modules.filter((module) => {
             const identifier = module.identifier();
@@ -74,7 +74,7 @@ module.exports = class BasePlugin {
             }
         });
     }
-    replaceMinCssMoudle(modules, data) {
+    replaceMinCssModule(modules, data) {
         const replaceReg = this.REPLACEREG;
         modules.filter((module) => {
             const identifier = module.identifier();
@@ -89,7 +89,7 @@ module.exports = class BasePlugin {
             }
         });
     }
-    replaceExtractedMoudle(chunks) {
+    replaceExtractedModule(chunks) {
         const replaceReg = this.REPLACEREG;
         const data = this.strData;
         chunks.forEach((chunk) => {
@@ -105,22 +105,22 @@ module.exports = class BasePlugin {
         });
     }
     replaceStringHolder(value, replaceReg, data) {
-        return value.replace(replaceReg, ($1, $2) => data[$2] || $1);
+        return value.replace(replaceReg, (m, $2) => data[$2] || m);
     }
     replaceHolder(value, replaceReg, data) {
         const rangeList = [];
         const haveChecked = [];
-        value.replace(replaceReg, ($1, $2) => {
-            if (data[$2] && haveChecked.indexOf($1) === -1) {
-                haveChecked.push($1);
+        value.replace(replaceReg, (m, $2) => {
+            if (data[$2] && haveChecked.indexOf(m) === -1) {
+                haveChecked.push(m);
                 const content = data[$2];
-                let index = value.indexOf($1);
+                let index = value.indexOf(m);
                 while (index !== -1) {
-                    rangeList.push([index, index + $1.length - 1, content]);
-                    index = value.indexOf($1, index + 1);
+                    rangeList.push([index, index + m.length - 1, content]);
+                    index = value.indexOf(m, index + 1);
                 }
             }
-            return $1;
+            return m;
         });
         return rangeList;
     }

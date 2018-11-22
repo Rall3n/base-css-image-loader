@@ -1,7 +1,7 @@
 'use strict';
 
-const loader = require('./loader.js');
-const plugin = require('./plugin.js');
+const loader = require('./createLoader.js');
+const plugin = require('./basePlugin.js');
 
 module.exports = {
     loader,
