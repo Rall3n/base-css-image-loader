@@ -7,67 +7,91 @@ const getAllModules = require('./getAllModules');
 const utils = require('./utils');
 const path = require('path');
 
-module.exports = ({ NAMESPACE, MODULEMARK, REPLACEREG }) => ({
+module.exports = class BasePlugin {
+    constructor() {
+        this.options = {
+            output: './',
+            filename: '[fontName].[ext]?[hash]',
+            publicPath: undefined,
+        };
+    }
     apply(compiler) {
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());
             compilation.dependencyTemplates.set(ReplaceDependency, ReplaceDependency.Template);
-            this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.afterOptimizeChunks(chunks, compilation));
+            this.plugin(compilation, 'optimizeExtractedChunks', (chunks) => this.replaceExtractedMoudle(chunks));
+            this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.replaceMoudle(chunks, compilation));
         });
-        return this;
-    },
+    }
     plugin(obj, name, callBack) {
         if (obj.hooks) {
-            if (asyncHooks.indexOf(name) !== -1)
-                obj.hooks[name].tapAsync(NAMESPACE, callBack);
+            if (asyncHooks.includes(name))
+                obj.hooks[name].tapAsync(this.NAMESPACE, callBack);
             else
-                obj.hooks[name].tap(NAMESPACE, callBack);
+                obj.hooks[name].tap(this.NAMESPACE, callBack);
         } else {
-            name = name.match(/([A-Z]{0,1}[a-z]*)/g).filter((item, index) => item !== '').map((item) => item.toLowerCase()).join('-');
+            name = name.replace(/([A-Z])/g, (m, $1) => `-${$1.toLowerCase()}`);
             obj.plugin(name, callBack);
         }
-    },
-    afterOptimizeChunks(chunks, compilation) {
+    }
+    replaceMoudle(chunks, compilation) {
+        // minCssPlugin's module's content is string, and is different from normal module source value
         const data = this.data;
+        const strData = this.strData;
         const allModules = getAllModules(compilation);
-        const replaceReg = REPLACEREG;
-        allModules.filter((module) => {
-            // hack for min-css-extract-plugin, this plugin's identifier start with 'css'
+        if (data)
+            this.replaceInMoudle(allModules, data);
+        if (strData)
+            this.replaceMinCssMoudle(allModules, strData);
+    }
+    replaceInMoudle(modules, data) {
+        const replaceReg = this.REPLACEREG;
+        modules.filter((module) => {
             const identifier = module.identifier();
+            // mincssModule is not normal module;
             if (/^css[\s]+/g.test(identifier)) {
-                module.thisModuleIsCssModule = true;
-                return true;
+                return false;
             }
-            if (MODULEMARK) {
-                return module[MODULEMARK];
+            if (this.MODULEMARK) {
+                return module[this.MODULEMARK];
             }
             return true;
         }).forEach((module) => {
-            if (module.thisModuleIsCssModule && module.content) {
-                const content = module.content;
-                module.content = this.replaceStringHolder(content, replaceReg, data);
-            } else {
-                const source = module._source;
-                let range = [];
-                const replaceDependency = module.dependencies.filter((dependency) => dependency.constructor === ReplaceDependency)[0];
-                if (typeof source === 'string') {
-                    range = this.replaceHolder(source, replaceReg, data);
-                } else if (source instanceof Object && typeof source._value === 'string') {
-                    range = this.replaceHolder(source._value, replaceReg, data);
-                }
-                if (range.length > 0) {
-                    if (replaceDependency) {
-                        replaceDependency.updateRange(range);
-                    } else {
-                        module.addDependency(new ReplaceDependency(range));
-                    }
+            const source = module._source;
+            let range = [];
+            const replaceDependency = module.dependencies.filter((dependency) => dependency.constructor === ReplaceDependency)[0];
+            if (typeof source === 'string') {
+                range = this.replaceHolder(source, replaceReg, data);
+            } else if (source instanceof Object && typeof source._value === 'string') {
+                range = this.replaceHolder(source._value, replaceReg, data);
+            }
+            if (range.length > 0) {
+                if (replaceDependency) {
+                    replaceDependency.updateRange(range);
+                } else {
+                    module.addDependency(new ReplaceDependency(range));
                 }
             }
         });
-    },
-    optimizeExtractedChunks(chunks) {
-        const data = this.data;
-        const replaceReg = REPLACEREG;
+    }
+    replaceMinCssMoudle(modules, data) {
+        const replaceReg = this.REPLACEREG;
+        modules.filter((module) => {
+            const identifier = module.identifier();
+            if (/^css[\s]+/g.test(identifier)) {
+                return true;
+            }
+            return false;
+        }).forEach((module) => {
+            if (module.content) {
+                const content = module.content;
+                module.content = this.replaceStringHolder(content, replaceReg, data);
+            }
+        });
+    }
+    replaceExtractedMoudle(chunks) {
+        const replaceReg = this.REPLACEREG;
+        const data = this.strData;
         chunks.forEach((chunk) => {
             const modules = !chunk.mapModules ? chunk._modules : chunk.mapModules();
             modules.filter((module) => '_originalModule' in module).forEach((module) => {
@@ -79,10 +103,10 @@ module.exports = ({ NAMESPACE, MODULEMARK, REPLACEREG }) => ({
                 }
             });
         });
-    },
+    }
     replaceStringHolder(value, replaceReg, data) {
         return value.replace(replaceReg, ($1, $2) => data[$2] || $1);
-    },
+    }
     replaceHolder(value, replaceReg, data) {
         const rangeList = [];
         const haveChecked = [];
@@ -99,10 +123,10 @@ module.exports = ({ NAMESPACE, MODULEMARK, REPLACEREG }) => ({
             return $1;
         });
         return rangeList;
-    },
+    }
     getFileName(options) {
         return utils.createFileName(this.options.filename, options);
-    },
+    }
     getFilePath(fileName, compilation) {
         const urlPath = this.options.output;
         let url = '/';
@@ -113,5 +137,5 @@ module.exports = ({ NAMESPACE, MODULEMARK, REPLACEREG }) => ({
         if (path.sep === '\\')
             url = url.replace(/\\/g, '/');
         return url;
-    },
-});
+    }
+};
