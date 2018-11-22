@@ -1,9 +1,8 @@
 'use strict';
 
-const Dependency = require('webpack/lib/dependencies/NullDependency');
-const path = require('path');
+const NullDependency = require('webpack/lib/dependencies/NullDependency');
 
-class ReplaceDependency extends Dependency {
+class ReplaceDependency extends NullDependency {
     constructor(replaceRange) {
         super();
         this.replaceRange = replaceRange;

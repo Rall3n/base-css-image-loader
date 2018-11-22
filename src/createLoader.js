@@ -2,10 +2,11 @@
 
 const postcss = require('postcss');
 
-module.exports = function (plugins) {
+module.exports = function createLoader(plugins) {
     return function (source, meta) {
         const callback = this.async();
         this.cacheable();
+
         const options = {
             to: this.resourcePath,
             from: this.resourcePath,
@@ -17,8 +18,9 @@ module.exports = function (plugins) {
                 annotation: false,
             };
         }
-        const pluginsList = plugins.map((plugin) => plugin({ loaderContext: this }));
-        postcss(pluginsList).process(source, options).then((result) => {
+
+        plugins = plugins.map((plugin) => plugin({ loaderContext: this }));
+        postcss(plugins).process(source, options).then((result) => {
             const map = result.map && result.map.toJSON();
             callback(null, result.css, map);
             return null;

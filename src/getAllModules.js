@@ -7,21 +7,19 @@ try {
 
 function getAllModules(compilation) {
     let modules = compilation.modules;
-    if (compilation.children.length > 0) {
-        const childModules = compilation.children.map(getAllModules)
-            .reduce((acc, compilationModules) => acc.concat(compilationModules), []);
+    if (compilation.children.length) {
+        const childModulesList = compilation.children.map(getAllModules);
+        modules = modules.concat.apply([], childModulesList);
+    }
 
-        modules = modules.concat(childModules);
-    }
     if (ConcatenatedModule) {
-        const concatenatedModules = modules.filter((m) => (m instanceof ConcatenatedModule)).reduce((acc, m) => {
-            const subModules = 'modules' in m ? m.modules : m._orderedConcatenationList.map((entry) => entry.module);
-            return acc.concat(subModules);
-        }, []);
-        if (concatenatedModules.length > 0) {
-            modules = modules.concat(concatenatedModules);
-        }
+        const concatenatedModulesList = modules.filter((m) => (m instanceof ConcatenatedModule))
+            .map((m) => m.modules || m._orderedConcatenationList.map((entry) => entry.module));
+        if (concatenatedModulesList.length)
+            modules = modules.concat.apply([], concatenatedModulesList);
     }
+
     return modules;
 }
+
 module.exports = getAllModules;
