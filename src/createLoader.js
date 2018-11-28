@@ -19,8 +19,8 @@ module.exports = function createLoader(plugins) {
             };
         }
 
-        plugins = plugins.map((plugin) => plugin({ loaderContext: this }));
-        postcss(plugins).process(source, options).then((result) => {
+        const pluginList = plugins.map((plugin) => plugin({ loaderContext: this }));
+        postcss(pluginList).process(source, options).then((result) => {
             const map = result.map && result.map.toJSON();
             callback(null, result.css, map);
             return null;

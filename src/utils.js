@@ -5,8 +5,8 @@ const url = require('url');
 const path = require('path');
 const loaderUtils = require('loader-utils');
 
-module.exports = {
-    md5Create(stream) {
+const utils = {
+    genMD5(stream) {
         const md5 = crypto.createHash('md5');
         md5.update(stream);
         return md5.digest('hex');
@@ -26,4 +26,34 @@ module.exports = {
         }
         return placeholder.replace(/\[([^[]*)\]/g, ($1, $2) => data[$2] || $1);
     },
+    /**
+     * Prepend an entry to webpack option
+     */
+    prependEntry(filePath, entry) {
+        if (typeof entry === 'string')
+            return [filePath, entry];
+        else if (Array.isArray(entry)) {
+            entry.unshift(filePath);
+            return entry;
+        } else if (typeof entry === 'object') {
+            Object.keys(entry).forEach((key) => {
+                entry[key] = utils.prependEntry(filePath, entry[key]);
+            });
+            return entry;
+        } else if (typeof entry === 'function') {
+            return function () {
+                return Promise.resolve(entry()).then((entry) => utils.prependEntry(filePath, entry));
+            };
+        } else
+            throw new TypeError('Error entry type: ' + typeof entry);
+    },
+    /**
+     * Escape string
+     * @param {string} string to escape
+     */
+    escape(string) {
+        return string.replace(/[\\'"]/g, '\\$&');
+    },
 };
+
+module.exports = utils;
