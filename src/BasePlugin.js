@@ -12,6 +12,7 @@ class BasePlugin {
         this.NAMESPACE = 'BasePlugin';
         this.MODULE_MARK = 'BasePluginModule';
         this.REPLACE_REG = /BASE_PLUGIN\(([^)]*)\)/g;
+        this.RUNTIME_MODULES = [];
 
         this.options = {
             output: './',
@@ -31,6 +32,10 @@ class BasePlugin {
         }
     }
     apply(compiler) {
+        this.plugin(compiler, 'environment', () => {
+            if (this.RUNTIME_MODULES.length > 0)
+                compiler.options.entry = utils.prependEntry(this.RUNTIME_MODULES, compiler.options.entry);
+        });
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());
             compilation.dependencyTemplates.set(ReplaceDependency, ReplaceDependency.Template);

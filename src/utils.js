@@ -29,20 +29,23 @@ const utils = {
     /**
      * Prepend an entry to webpack option
      */
-    prependEntry(filePath, entry) {
+    prependEntry(filePaths, entry) {
+        if (typeof filePaths === 'string')
+            filePaths = [filePaths];
         if (typeof entry === 'string')
-            return [filePath, entry];
+            return [...filePaths, entry];
         else if (Array.isArray(entry)) {
-            entry.unshift(filePath);
+            for (const path of filePaths)
+                entry.unshift(path);
             return entry;
         } else if (typeof entry === 'object') {
             Object.keys(entry).forEach((key) => {
-                entry[key] = utils.prependEntry(filePath, entry[key]);
+                entry[key] = utils.prependEntry(filePaths, entry[key]);
             });
             return entry;
         } else if (typeof entry === 'function') {
             return function () {
-                return Promise.resolve(entry()).then((entry) => utils.prependEntry(filePath, entry));
+                return Promise.resolve(entry()).then((entry) => utils.prependEntry(filePaths, entry));
             };
         } else
             throw new TypeError('Error entry type: ' + typeof entry);
