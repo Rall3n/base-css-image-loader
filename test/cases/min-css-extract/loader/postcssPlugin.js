@@ -7,7 +7,8 @@ module.exports = postcss.plugin('parse-icon-font', ({ loaderContext }) => (style
         if (result) {
             const url = result[1];
             decl.value = `IMAGE_PLACEHOLDER(${url})`;
-            loaderContext._module.cssTestPluginMoudle = true;
+            loaderContext._module.CssTestPluginMoudle = true;
         }
+        reg.lastIndex = 0;
     });
 });

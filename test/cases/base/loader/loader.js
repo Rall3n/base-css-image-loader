@@ -1,5 +1,5 @@
-const loader = require('../../../../src/loader.js');
+const createLoader = require('../../../../src/createLoader.js');
 const postPlugin = require('./postcssPlugin.js');
 
 // console.log(baseCssImageLoader);
-module.exports = loader([postPlugin]);
+module.exports = createLoader([postPlugin]);

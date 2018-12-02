@@ -31,3 +31,6 @@ public/
 lib-cov
 coverage
 .nyc_output
+
+# Test
+test/cases/*/dest
