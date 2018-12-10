@@ -27,18 +27,17 @@ const utils = {
         return placeholder.replace(/\[([^[]*)\]/g, ($1, $2) => data[$2] || $1);
     },
     /**
-     * Prepend an entry to webpack option
+     * Prepend an entry or entries to webpack option
      */
     prependEntry(filePaths, entry) {
         if (typeof filePaths === 'string')
             filePaths = [filePaths];
+
         if (typeof entry === 'string')
-            return [...filePaths, entry];
-        else if (Array.isArray(entry)) {
-            for (const path of filePaths)
-                entry.unshift(path);
-            return entry;
-        } else if (typeof entry === 'object') {
+            return [].concat(filePaths, [entry]);
+        else if (Array.isArray(entry))
+            return [].concat(filePaths, entry);
+        else if (typeof entry === 'object') {
             Object.keys(entry).forEach((key) => {
                 entry[key] = utils.prependEntry(filePaths, entry[key]);
             });
