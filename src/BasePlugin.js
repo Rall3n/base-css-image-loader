@@ -13,7 +13,7 @@ class BasePlugin {
         this.NAMESPACE = 'BasePlugin';
         this.MODULE_MARK = 'isBasePluginModule';
         this.REPLACE_REG = /BASE_PLUGIN\('([^'")]*)'\)/g;
-        // this.REPLACE_AFTER_OPTIMIZE_TREE = false;
+        this.REPLACE_AFTER_OPTIMIZE_TREE = false;
         this.RUNTIME_MODULES = [];
 
         this.options = {
