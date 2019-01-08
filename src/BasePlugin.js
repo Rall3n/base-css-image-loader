@@ -2,6 +2,7 @@
 
 const { asyncHooks } = require('./hooks');
 const ReplaceDependency = require('./ReplaceDependency');
+const ReplaceSource = require('webpack-sources').ReplaceSource;
 const NullFactory = require('webpack/lib/NullFactory');
 const getAllModules = require('./getAllModules');
 const utils = require('./utils');
@@ -10,13 +11,14 @@ const path = require('path');
 class BasePlugin {
     constructor() {
         this.NAMESPACE = 'BasePlugin';
-        this.MODULE_MARK = 'BasePluginModule';
-        this.REPLACE_REG = /BASE_PLUGIN\(([^)]*)\)/g;
+        this.MODULE_MARK = 'isBasePluginModule';
+        this.REPLACE_REG = /BASE_PLUGIN\('([^'")]*)'\)/g;
+        // this.REPLACE_AFTER_OPTIMIZE_TREE = false;
         this.RUNTIME_MODULES = [];
 
         this.options = {
             output: './',
-            filename: '[fontName].[ext]?[hash]',
+            filename: '[name].[ext]?[hash]',
             publicPath: undefined,
         };
     }
@@ -39,8 +41,17 @@ class BasePlugin {
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());
             compilation.dependencyTemplates.set(ReplaceDependency, ReplaceDependency.Template);
-            this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.replaceInModules(chunks, compilation));
-            this.plugin(compilation, 'optimizeExtractedChunks', (chunks) => this.replaceInExtractedModules(chunks));
+            // When data are ready to replace
+            if (!this.REPLACE_AFTER_OPTIMIZE_TREE) {
+                this.plugin(compilation, 'afterOptimizeChunks', (chunks, chunkGroups) => this.replaceInModules(chunks, compilation));
+                this.plugin(compilation, 'optimizeExtractedChunks', (chunks) => this.replaceInExtractedModules(chunks));
+            } else {
+                this.plugin(compilation, 'afterOptimizeTree', (chunks, modules) => this.replaceInModules(chunks, compilation));
+                this.plugin(compilation, 'optimizeChunkAssets', (chunks, callback) => {
+                    this.replaceInCSSAssets(chunks, compilation);
+                    callback();
+                });
+            }
         });
         this.plugin(compiler, 'compilation', (compilation, params) => {
             this.plugin(compilation, 'normalModuleLoader', (loaderContext, module) => {
@@ -88,27 +99,57 @@ class BasePlugin {
             });
         });
     }
-    /**
-     * @override
-     * @param {string} source - Source to replace
-     */
+    replaceInCSSAssets(chunks, compilation) {
+        chunks.forEach((chunk) => {
+            chunk.files.forEach((file) => {
+                if (!file.endsWith('.css'))
+                    return;
+                // 处理css模块
+                const source = compilation.assets[file];
+                let content = compilation.assets[file].source();
+                content = this.replaceHolderToString(content);
+                const replaceSource = new ReplaceSource(source);
+                replaceSource.replace(0, source.size(), content);
+                compilation.assets[file] = replaceSource;
+            });
+        });
+    }
+
+    /* eslint-disable new-cap, prefer-spread */
     replaceHolderToRange(source) {
         const range = [];
-        source.replace(this.REPLACE_REG, (m, hash, offset) => {
-            if (this.data[hash]) {
-                const content = this.data[hash].escapedContent;
-                range.push([offset, offset + m.length - 1, content]);
-            }
+        source.replace(this.REPLACE_REG, (...args) => {
+            const m = args[0];
+            const offset = +args[args.length - 2];
+            const content = this.REPLACE_FUNCTION_ESCAPED(...args.slice(1, -2)) || m;
+            range.push([offset, offset + m.length - 1, content]);
             return m;
         });
         return range;
     }
+
+    replaceHolderToString(source) {
+        return source.replace(this.REPLACE_REG, (...args) => {
+            const m = args[0];
+            return this.REPLACE_FUNCTION(...args.slice(1, -2)) || m;
+        });
+    }
+
     /**
      * @override
-     * @param {string} source - Source to replace
+     * Replace Function
+     * @TODO How about run a function `XXX('H3afwefa')`
      */
-    replaceHolderToString(source) {
-        return source.replace(this.REPLACE_REG, (m, hash) => this.data[hash].content || m);
+    REPLACE_FUNCTION(id) {
+        return this.data[id].content;
+    }
+
+    /**
+     * @override
+     * Replace Function to escape
+     */
+    REPLACE_FUNCTION_ESCAPED(id) {
+        return this.data[id].escapedContent;
     }
 
     getOutputFileName(options) {
