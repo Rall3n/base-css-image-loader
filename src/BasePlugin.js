@@ -12,7 +12,10 @@ class BasePlugin {
     constructor() {
         this.PLUGIN_NAME = 'basePlugin';
         this.MODULE_MARK = 'isBasePluginModule';
-        this.REPLACE_REG = /BASE_PLUGIN\(([^'")]*)\)/g;
+        this.REPLACER_NAME = 'BASE_PLUGIN';
+        this.REPLACER_RE = /BASE_PLUGIN\(([^'")]*)\)/g;
+        // this.REPLACER_FUNC = ...;
+        // this.REPLACER_FUNC_ESCAPED = ...;
         this.REPLACE_AFTER_OPTIMIZE_TREE = false;
         this.RUNTIME_MODULES = [];
 
@@ -118,10 +121,10 @@ class BasePlugin {
     /* eslint-disable new-cap, prefer-spread */
     replaceHolderToRange(source) {
         const range = [];
-        source.replace(this.REPLACE_REG, (...args) => {
+        source.replace(this.REPLACER_RE, (...args) => {
             const m = args[0];
             const offset = +args[args.length - 2];
-            const content = this.REPLACE_FUNCTION_ESCAPED(...args.slice(1, -2)) || m;
+            const content = this.REPLACER_FUNC_ESCAPED(...args.slice(1, -2)) || m;
             range.push([offset, offset + m.length - 1, content]);
             return m;
         });
@@ -129,9 +132,9 @@ class BasePlugin {
     }
 
     replaceHolderToString(source) {
-        return source.replace(this.REPLACE_REG, (...args) => {
+        return source.replace(this.REPLACER_RE, (...args) => {
             const m = args[0];
-            return this.REPLACE_FUNCTION(...args.slice(1, -2)) || m;
+            return this.REPLACER_FUNC(...args.slice(1, -2)) || m;
         });
     }
 
@@ -140,7 +143,7 @@ class BasePlugin {
      * Replace Function
      * @TODO How about run a function `XXX('H3afwefa')`
      */
-    REPLACE_FUNCTION(id) {
+    REPLACER_FUNC(id) {
         return this.data[id].content;
     }
 
@@ -148,7 +151,7 @@ class BasePlugin {
      * @override
      * Replace Function to escape
      */
-    REPLACE_FUNCTION_ESCAPED(id) {
+    REPLACER_FUNC_ESCAPED(id) {
         return this.data[id].escapedContent;
     }
 
