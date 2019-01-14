@@ -10,7 +10,7 @@ const path = require('path');
 
 class BasePlugin {
     constructor() {
-        this.NAMESPACE = 'BasePlugin';
+        this.PLUGIN_NAME = 'basePlugin';
         this.MODULE_MARK = 'isBasePluginModule';
         this.REPLACE_REG = /BASE_PLUGIN\(([^'")]*)\)/g;
         this.REPLACE_AFTER_OPTIMIZE_TREE = false;
@@ -25,9 +25,9 @@ class BasePlugin {
     plugin(obj, name, callback) {
         if (obj.hooks) {
             if (asyncHooks.includes(name))
-                obj.hooks[name].tapAsync(this.NAMESPACE, callback);
+                obj.hooks[name].tapAsync(this.PLUGIN_NAME, callback);
             else
-                obj.hooks[name].tap(this.NAMESPACE, callback);
+                obj.hooks[name].tap(this.PLUGIN_NAME, callback);
         } else {
             name = name.replace(/([A-Z])/g, (m, $1) => '-' + $1.toLowerCase());
             obj.plugin(name, callback);
@@ -55,7 +55,7 @@ class BasePlugin {
         });
         this.plugin(compiler, 'compilation', (compilation, params) => {
             this.plugin(compilation, 'normalModuleLoader', (loaderContext, module) => {
-                loaderContext.relevantPlugin = this;
+                loaderContext[this.PLUGIN_NAME] = this;
             });
         });
     }
