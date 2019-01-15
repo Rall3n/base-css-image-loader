@@ -13,7 +13,7 @@ class BasePlugin {
         this.PLUGIN_NAME = 'basePlugin';
         this.MODULE_MARK = 'isBasePluginModule';
         this.REPLACER_NAME = 'BASE_PLUGIN';
-        this.REPLACER_RE = /BASE_PLUGIN\(([^'")]*)\)/g;
+        this.REPLACER_RE = /BASE_PLUGIN\(([^)]*)\)/g;
         // this.REPLACER_FUNC = ...;
         // this.REPLACER_FUNC_ESCAPED = ...;
         this.REPLACE_AFTER_OPTIMIZE_TREE = false;
