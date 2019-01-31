@@ -6,7 +6,7 @@ const BasePlugin = require('../src/BasePlugin.js');
 const getAllModules = require('../src/getAllModules.js');
 
 const value = 'min-css-extract';
-const replaceReg = /IMAGE_PLACEHOLDER\(([^)]*)\)/g;
+const replaceReg = /BASE_PLUGIN\(([^)]*)\)/g;
 let resultSource = '';
 
 describe('Webpack Integration Tests: base', () => {
@@ -21,6 +21,7 @@ describe('Webpack Integration Tests: base', () => {
                 this.plugin(compilation, 'afterOptimizeChunks', (chunks) => this.afterOptimizeChunksCheck(chunks, compilation));
             });
         }
+
         afterOptimizeChunksCheck(chunks, compilation) {
             const allModules = getAllModules(compilation);
             allModules.forEach((module) => {

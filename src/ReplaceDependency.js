@@ -7,9 +7,11 @@ class ReplaceDependency extends NullDependency {
         super();
         this.replaceRange = replaceRange;
     }
+
     updateRange(range) {
         this.replaceRange = range;
     }
+
     updateHash(hash) {
         hash.update(this.replaceRange + '');
     }

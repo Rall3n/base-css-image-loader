@@ -25,6 +25,7 @@ class BasePlugin {
             publicPath: undefined,
         };
     }
+
     plugin(obj, name, callback) {
         if (obj.hooks) {
             if (asyncHooks.includes(name))
@@ -36,6 +37,7 @@ class BasePlugin {
             obj.plugin(name, callback);
         }
     }
+
     apply(compiler) {
         this.plugin(compiler, 'environment', () => {
             if (this.RUNTIME_MODULES.length > 0)
@@ -90,6 +92,7 @@ class BasePlugin {
             }
         });
     }
+
     replaceInExtractedModules(chunks) {
         chunks.forEach((chunk) => {
             const modules = !chunk.mapModules ? chunk._modules : chunk.mapModules();
@@ -102,6 +105,7 @@ class BasePlugin {
             });
         });
     }
+
     replaceInCSSAssets(chunks, compilation) {
         chunks.forEach((chunk) => {
             chunk.files.forEach((file) => {
@@ -158,9 +162,11 @@ class BasePlugin {
     getOutputFileName(options) {
         return utils.createFileName(this.options.filename, options);
     }
+
     getOutputPath(fileName) {
         return path.join(this.options.output, fileName);
     }
+
     getOutputURL(fileName, compilation) {
         const urlPath = this.options.output;
         let url = '/';
@@ -172,6 +178,7 @@ class BasePlugin {
             url = url.replace(/\\/g, '/');
         return url;
     }
+
     /**
      * Get output info by fileName options
      * @param {Object} options
