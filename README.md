@@ -1,56 +1,22 @@
-# js-repo-template
+# base-css-image-loader
 
 - [中文说明](README.zh-CN.md)
 
-A template for creating npm package repo.
+A base loader for processing images in CSS
 
 [![CircleCI][circleci-img]][circleci-url]
 [![NPM Version][npm-img]][npm-url]
 [![Dependencies][david-img]][david-url]
 [![NPM Download][download-img]][download-url]
 
-[circleci-img]: https://img.shields.io/circleci/project/github/necfe/js-repo-template.svg?style=flat-square
-[circleci-url]: https://circleci.com/gh/necfe/js-repo-template
-[npm-img]: http://img.shields.io/npm/v/js-repo-template.svg?style=flat-square
-[npm-url]: http://npmjs.org/package/js-repo-template
-[david-img]: http://img.shields.io/david/necfe/js-repo-template.svg?style=flat-square
-[david-url]: https://david-dm.org/necfe/js-repo-template
-[download-img]: https://img.shields.io/npm/dm/js-repo-template.svg?style=flat-square
-[download-url]: https://npmjs.org/package/js-repo-template
-
-## Example
-
-Show an easy example can attract readers quickly.
-
-## Features
-
-Introduce some major features of this project.
-
-- Feature 1
-- Feature 2
-- Feature 3
-
-## Install
-
-``` shell
-npm install --save-dev js-repo-template
-```
-
-## Options
-
-#### name
-
-Name of something.
-
-- Type: `string`
-- Default: `'hello'`
-
-#### auto
-
-Do something automatically.
-
-- Type: `boolean`
-- Default: `'true'`
+[circleci-img]: https://img.shields.io/circleci/project/github/vusion/base-css-image-loader.svg?style=flat-square
+[circleci-url]: https://circleci.com/gh/vusion/base-css-image-loader
+[npm-img]: http://img.shields.io/npm/v/base-css-image-loader.svg?style=flat-square
+[npm-url]: http://npmjs.org/package/base-css-image-loader
+[david-img]: http://img.shields.io/david/vusion/base-css-image-loader.svg?style=flat-square
+[david-url]: https://david-dm.org/vusion/base-css-image-loader
+[download-img]: https://img.shields.io/npm/dm/base-css-image-loader.svg?style=flat-square
+[download-url]: https://npmjs.org/package/base-css-image-loader
 
 ## Develop
 
@@ -74,7 +40,7 @@ npm run test
 
 ## Changelog
 
-See [Releases](https://github.com/necfe/js-repo-template/releases)
+See [Releases](https://github.com/vusion/base-css-image-loader/releases)
 
 ## Contributing
 

@@ -1,28 +1,32 @@
 {
   "name": "base-css-image-loader",
-  "description": "A template for creating npm package repo",
+  "description": "A base loader for processing images in CSS",
   "version": "0.2.2",
   "author": "moujintao <moujintaotest@163.com>",
   "scripts": {
     "lint": "eslint ./src --fix",
     "precommit": "node node_modules/vusion-hooks/precommit",
-    "test": "mocha --timeout 5000 ./test/final.test.js"
+    "test": "mocha --timeout 5000 ./test/index.test.js",
+    "test:unit": "mocha --timeout 5000 ./test/unit.test.js",
+    "test:base": "mocha --timeout 5000 ./test/base.test.js"
   },
   "main": "./index.js",
-  "repository": "necfe/js-repo-template",
+  "repository": "vusion/base-css-image-loader",
   "bugs": {
-    "url": "http://github.com/necfe/js-repo-template/issues"
+    "url": "http://github.com/vusion/base-css-image-loader/issues"
   },
   "license": "MIT",
   "keywords": [
-    "js",
-    "repo",
-    "template"
+    "base",
+    "css",
+    "image",
+    "loader"
   ],
   "tags": [
-    "js",
-    "repo",
-    "template"
+    "base",
+    "css",
+    "image",
+    "loader"
   ],
   "dependencies": {
     "postcss": "^6.0.23",

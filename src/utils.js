@@ -29,7 +29,7 @@ const utils = {
     /**
      * Prepend an entry or entries to webpack option
      */
-    prependEntry(filePaths, entry) {
+    prependToEntry(filePaths, entry) {
         if (typeof filePaths === 'string')
             filePaths = [filePaths];
 
@@ -39,12 +39,35 @@ const utils = {
             return [].concat(filePaths, entry);
         else if (typeof entry === 'object') {
             Object.keys(entry).forEach((key) => {
-                entry[key] = utils.prependEntry(filePaths, entry[key]);
+                entry[key] = utils.prependToEntry(filePaths, entry[key]);
             });
             return entry;
         } else if (typeof entry === 'function') {
             return function () {
-                return Promise.resolve(entry()).then((entry) => utils.prependEntry(filePaths, entry));
+                return Promise.resolve(entry()).then((entry) => utils.prependToEntry(filePaths, entry));
+            };
+        } else
+            throw new TypeError('Error entry type: ' + typeof entry);
+    },
+    /**
+     * Append an entry or entries to webpack option
+     */
+    appendToEntry(filePaths, entry) {
+        if (typeof filePaths === 'string')
+            filePaths = [filePaths];
+
+        if (typeof entry === 'string')
+            return [].concat([entry], filePaths);
+        else if (Array.isArray(entry))
+            return [].concat(entry, filePaths);
+        else if (typeof entry === 'object') {
+            Object.keys(entry).forEach((key) => {
+                entry[key] = utils.appendToEntry(filePaths, entry[key]);
+            });
+            return entry;
+        } else if (typeof entry === 'function') {
+            return function () {
+                return Promise.resolve(entry()).then((entry) => utils.appendToEntry(filePaths, entry));
             };
         } else
             throw new TypeError('Error entry type: ' + typeof entry);

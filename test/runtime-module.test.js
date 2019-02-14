@@ -9,17 +9,17 @@ const value = 'runtime-module';
 const replaceReg = /console.log\('run time module'\)/g;
 let runResult = {};
 
-describe('Webpack Integration Tests: runtime-module', () => {
+describe('Webpack Integration Test: runtime-module', () => {
     const configPath = path.join('../test/cases/' + value + '/webpack.config.js');
     const outputDirectory = path.join('./cases/' + value + '/dest');
     const options = require(configPath);
-    for (const chunk of Object.keys(options.entry))
-        options.entry[chunk] = path.join(__dirname, '/cases/', value, options.entry[chunk]);
+
     class TestChunck extends BasePlugin {
         // check run time module path add to entry success
         constructor(options) {
             super();
         }
+
         apply(compiler) {
             this.plugin(compiler, 'environment', () => {
                 runResult = compiler.options.entry;
