@@ -1,7 +1,5 @@
 # base-css-image-loader
 
-- [中文说明](README.zh-CN.md)
-
 A base loader for processing images in CSS
 
 [![CircleCI][circleci-img]][circleci-url]
