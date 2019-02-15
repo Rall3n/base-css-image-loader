@@ -36,6 +36,10 @@ npm run build
 npm run test
 ```
 
+``` shell
+npm run test:unit
+```
+
 ## Changelog
 
 See [Releases](https://github.com/vusion/base-css-image-loader/releases)

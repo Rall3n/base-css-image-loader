@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { expect } = require('chai');
 
-const runWebpack = require('./fixtures/runWebpack');
+const runWebpack = require('../../fixtures/runWebpack');
 
 describe('Webpack Integration Test: base', () => {
     it('should not remain IMAGE_PLACEHOLDER', (done) => {

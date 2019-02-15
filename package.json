@@ -7,8 +7,7 @@
     "lint": "eslint ./src --fix",
     "precommit": "node node_modules/vusion-hooks/precommit",
     "test": "mocha --timeout 5000 ./test/index.test.js",
-    "test:unit": "mocha --timeout 5000 ./test/unit.test.js",
-    "test:base": "mocha --timeout 5000 ./test/base.test.js"
+    "test:unit": "mocha --timeout 5000 ./test/unit.test.js"
   },
   "main": "./index.js",
   "repository": "vusion/base-css-image-loader",
