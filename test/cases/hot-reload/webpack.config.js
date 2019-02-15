@@ -1,6 +1,5 @@
-const Plugin = require('./loader/plugin.js');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const webpack = require('webpack');
+const loaderPath = require.resolve('../../fixtures/subLoader/loader');
+const Plugin = require('../../fixtures/subLoader/Plugin');
 
 module.exports = {
     mode: 'development',
@@ -11,24 +10,12 @@ module.exports = {
     output: {
         path: __dirname + '/dest',
         filename: '[name].js',
-        publicPath: '/',
+        publicPath: 'dest/',
     },
     module: {
-        rules: [{ test: /\.css$/, use: [
-            {
-                loader: MiniCssExtractPlugin.loader,
-                options: {
-                // you can specify a publicPath here
-                // by default it use publicPath in webpackOptions.output
-                    publicPath: '../',
-                },
-            }, 'css-loader', require.resolve('./loader/loader.js')] }],
+        rules: [{ test: /\.css$/, use: ['style-loader', 'css-loader', loaderPath] }],
     },
     plugins: [
         new Plugin(),
-        new MiniCssExtractPlugin({
-            filename: '[name].css',
-            chunkFilename: '[id].css',
-        }),
     ],
 };

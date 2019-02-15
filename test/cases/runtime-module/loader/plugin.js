@@ -1,11 +1,13 @@
-const BasePlugin = require('../../../../src/BasePlugin.js');
 const path = require('path');
+const BasePlugin = require('../../../../src/BasePlugin');
+const meta = require('./meta');
 
-class RuntimeCheck extends BasePlugin {
-    constructor(options) {
-        options = options || {};
+class RuntimeModulePlugin extends BasePlugin {
+    constructor() {
         super();
+        Object.assign(this, meta);
     }
+
     apply(compiler) {
         const insertPath = path.resolve(__dirname, '../insert.js');
         this.plugin(compiler, 'environment', () => {
@@ -14,4 +16,5 @@ class RuntimeCheck extends BasePlugin {
         super.apply(compiler);
     }
 }
-module.exports = RuntimeCheck;
+
+module.exports = RuntimeModulePlugin;

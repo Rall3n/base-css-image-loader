@@ -11,17 +11,19 @@ module.exports = function runWebapck(caseName, preprocess, done) {
     const options = require(configPath);
     preprocess && preprocess(options);
 
-    webpack(options, (err, stats) => {
+    const compiler = webpack(options);
+    compiler.run((err, stats) => {
         if (err)
             return done(err);
         if (stats.hasErrors())
             return done(new Error(stats.toString()));
 
         done(undefined, {
+            cwdPath,
             configPath,
             outputPath,
             meta: require('./subLoader/meta'),
             options,
-        });
+        }, compiler);
     });
 };

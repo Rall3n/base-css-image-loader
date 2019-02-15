@@ -1,5 +1,5 @@
-const Plugin = require('./loader/plugin.js');
-const webpack = require('webpack');
+const loaderPath = require.resolve('./loader/loader');
+const Plugin = require('./loader/Plugin');
 
 module.exports = {
     mode: 'development',
@@ -10,10 +10,10 @@ module.exports = {
     output: {
         path: __dirname + '/dest',
         filename: '[name].js',
-        publicPath: '/',
+        publicPath: 'dest/',
     },
     module: {
-        rules: [{ test: /\.css$/, use: ['style-loader', 'css-loader', require.resolve('./loader/loader.js')] }],
+        rules: [{ test: /\.css$/, use: ['style-loader', 'css-loader', loaderPath] }],
     },
     plugins: [
         new Plugin(),

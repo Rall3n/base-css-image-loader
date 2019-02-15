@@ -1,13 +1,23 @@
 const postcss = require('postcss');
-const reg = new RegExp(`url\\(["']?(.*?)["']?\\)`, 'g');
+const meta = require('./meta');
+const urlRE = /url\(["']?(.*?)["']?\)/;
 
-module.exports = postcss.plugin('parse-icon-font', ({ loaderContext }) => (styles, result) => {
+module.exports = postcss.plugin('sub-css-image', ({ loaderContext }) => (styles, result) => {
+    const plugin = loaderContext[meta.PLUGIN_NAME];
+    const data = plugin.data;
+
     styles.walkDecls('background-image', (decl) => {
-        const result = reg.exec(decl.value);
-        if (result) {
-            const url = result[1];
-            decl.value = `IMAGE_PLACEHOLDER(${url})`;
-            loaderContext._module.cssTestPluginMoudle = true;
+        const found = decl.value.match(urlRE);
+        if (found) {
+            const url = found[1];
+            decl.value = `${meta.REPLACER_NAME}(${url})`;
+
+            const content = url.replace('some/image/test', 'dest/image');
+            data[url] = {
+                content,
+                escapedContent: content,
+            };
+            loaderContext._module[meta.MODULE_MARK] = true;
         }
     });
 });
