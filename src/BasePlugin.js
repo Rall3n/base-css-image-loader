@@ -41,7 +41,6 @@ class BasePlugin {
 
     apply(compiler) {
         this.plugin(compiler, 'environment', () => {
-            console.log(this.RUNTIME_MODULES);
             if (this.RUNTIME_MODULES.length > 0)
                 compiler.options.entry = utils.prependToEntry(this.RUNTIME_MODULES, compiler.options.entry);
         });
