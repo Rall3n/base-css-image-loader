@@ -1,0 +1,12 @@
+.css {
+    background-image: url(./some/image/test-1.png);
+}
+
+.css-2 {
+    background-image: url(./some/image/test-2.png);
+}
+
+.css-3 {
+    color: red;
+    background-image: url(./some/image/test-3.png);
+}
