@@ -114,10 +114,10 @@ class BasePlugin {
                     return;
                 // 处理css模块
                 const source = compilation.assets[file];
-                let content = compilation.assets[file].source();
-                content = this.replaceHolderToString(content);
                 const replaceSource = new ReplaceSource(source);
-                replaceSource.replace(0, source.size(), content);
+                const ranges = this.replaceHolderToRange(source.source());
+                for (const range of ranges)
+                    replaceSource.replace(range[0], range[1], range[2]);
                 compilation.assets[file] = replaceSource;
             });
         });
@@ -149,7 +149,7 @@ class BasePlugin {
      * @TODO How about run a function `XXX('H3afwefa')`
      */
     REPLACER_FUNC(id) {
-        return this.data[id].content;
+        return this.data[id] ? this.data[id].content : undefined;
     }
 
     /**
@@ -157,7 +157,7 @@ class BasePlugin {
      * Replace Function to escape
      */
     REPLACER_FUNC_ESCAPED(id) {
-        return this.data[id].escapedContent;
+        return this.data[id] ? this.data[id].escapedContent : undefined;
     }
 
     getOutputFileName(options) {
