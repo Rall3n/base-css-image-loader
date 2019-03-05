@@ -78,17 +78,17 @@ class BasePlugin {
                 }
             } else if (this.MODULE_MARK ? module[this.MODULE_MARK] : true) {
                 const source = module._source;
-                let range = [];
+                let ranges = [];
                 const replaceDependency = module.dependencies.filter((dependency) => dependency.constructor === ReplaceDependency)[0];
                 if (typeof source === 'string')
-                    range = this.replaceHolderToRange(source);
+                    ranges = this.replaceHolderToRange(source);
                 else if (source instanceof Object && typeof source._value === 'string')
-                    range = this.replaceHolderToRange(source._value);
-                if (range.length) {
+                    ranges = this.replaceHolderToRange(source._value);
+                if (ranges.length) {
                     if (replaceDependency)
-                        replaceDependency.updateRanges(range);
+                        replaceDependency.updateRanges(ranges);
                     else
-                        module.addDependency(new ReplaceDependency(range));
+                        module.addDependency(new ReplaceDependency(ranges));
                 }
             }
         });
