@@ -3,24 +3,24 @@
 const NullDependency = require('webpack/lib/dependencies/NullDependency');
 
 class ReplaceDependency extends NullDependency {
-    constructor(replaceRange) {
+    constructor(replaceRanges) {
         super();
-        this.replaceRange = replaceRange;
+        this.replaceRanges = replaceRanges;
     }
 
-    updateRange(range) {
-        this.replaceRange = range;
+    updateRange(replaceRanges) {
+        this.replaceRanges = replaceRanges;
     }
 
     updateHash(hash) {
-        hash.update(this.replaceRange + '');
+        hash.update(this.replaceRanges + '');
     }
 }
 
 ReplaceDependency.Template = {
     apply(dep, source, outputOptions, requestShortener) {
-        const replaceRange = dep.replaceRange;
-        for (const range of replaceRange)
+        const ranges = dep.replaceRanges;
+        for (const range of ranges)
             source.replace(range[0], range[1], range[2]);
     },
 };
