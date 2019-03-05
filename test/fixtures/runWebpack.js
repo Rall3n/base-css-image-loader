@@ -1,14 +1,14 @@
 const path = require('path');
 const webpack = require('webpack');
 
-module.exports = function runWebapck(caseName, preprocess, done) {
+module.exports = function runWebapck(caseName, preprocess, done, webpackConfig) {
     const cwdPath = path.resolve(__dirname, `../cases/${caseName}`);
     process.chdir(cwdPath);
 
     const configPath = path.resolve(cwdPath, `webpack.config.js`);
     const outputPath = path.resolve(cwdPath, `dest`);
 
-    const options = require(configPath);
+    const options = webpackConfig || require(configPath);
     preprocess && preprocess(options);
 
     const compiler = webpack(options);
@@ -17,7 +17,6 @@ module.exports = function runWebapck(caseName, preprocess, done) {
             return done(err);
         if (stats.hasErrors())
             return done(new Error(stats.toString()));
-
         done(undefined, {
             cwdPath,
             configPath,
