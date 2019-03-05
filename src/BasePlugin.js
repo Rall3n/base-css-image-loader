@@ -86,7 +86,7 @@ class BasePlugin {
                     range = this.replaceHolderToRange(source._value);
                 if (range.length) {
                     if (replaceDependency)
-                        replaceDependency.updateRange(range);
+                        replaceDependency.updateRanges(range);
                     else
                         module.addDependency(new ReplaceDependency(range));
                 }

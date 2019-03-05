@@ -8,7 +8,7 @@ class ReplaceDependency extends NullDependency {
         this.replaceRanges = replaceRanges;
     }
 
-    updateRange(replaceRanges) {
+    updateRanges(replaceRanges) {
         this.replaceRanges = replaceRanges;
     }
 
