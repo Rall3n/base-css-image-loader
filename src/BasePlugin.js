@@ -81,9 +81,9 @@ class BasePlugin {
                 let ranges = [];
                 const replaceDependency = module.dependencies.filter((dependency) => dependency.constructor === ReplaceDependency)[0];
                 if (typeof source === 'string')
-                    ranges = this.replaceHolderToRange(source);
+                    ranges = this.replaceHolderToRanges(source);
                 else if (source instanceof Object && typeof source._value === 'string')
-                    ranges = this.replaceHolderToRange(source._value);
+                    ranges = this.replaceHolderToRanges(source._value);
                 if (ranges.length) {
                     if (replaceDependency)
                         replaceDependency.updateRanges(ranges);
@@ -115,7 +115,7 @@ class BasePlugin {
                 // 处理css模块
                 const source = compilation.assets[file];
                 const replaceSource = new ReplaceSource(source);
-                const ranges = this.replaceHolderToRange(source.source());
+                const ranges = this.replaceHolderToRanges(source.source());
                 for (const range of ranges)
                     replaceSource.replace(range[0], range[1], range[2]);
                 compilation.assets[file] = replaceSource;
@@ -124,16 +124,16 @@ class BasePlugin {
     }
 
     /* eslint-disable new-cap, prefer-spread */
-    replaceHolderToRange(source) {
-        const range = [];
+    replaceHolderToRanges(source) {
+        const ranges = [];
         source.replace(this.REPLACER_RE, (...args) => {
             const m = args[0];
             const offset = +args[args.length - 2];
             const content = this.REPLACER_FUNC_ESCAPED(...args.slice(1, -2)) || m;
-            range.push([offset, offset + m.length - 1, content]);
+            ranges.push([offset, offset + m.length - 1, content]);
             return m;
         });
-        return range;
+        return ranges;
     }
 
     replaceHolderToString(source) {
