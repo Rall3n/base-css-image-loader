@@ -42,7 +42,7 @@ class BasePlugin {
     apply(compiler) {
         this.plugin(compiler, 'environment', () => {
             if (this.RUNTIME_MODULES.length > 0)
-                compiler.options.entry = utils.prependToEntry(this.RUNTIME_MODULES, compiler.options.entry);
+                compiler.options.entry = utils.prependToEntry(this.RUNTIME_MODULES, compiler.options.entry, this.options.entries);
         });
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());

@@ -29,7 +29,7 @@ const utils = {
     /**
      * Prepend an entry or entries to webpack option
      */
-    prependToEntry(filePaths, entry) {
+    prependToEntry(filePaths, entry, entries) {
         if (typeof filePaths === 'string')
             filePaths = [filePaths];
 
@@ -39,12 +39,15 @@ const utils = {
             return [].concat(filePaths, entry);
         else if (typeof entry === 'object') {
             Object.keys(entry).forEach((key) => {
-                entry[key] = utils.prependToEntry(filePaths, entry[key]);
+                // if key is not included in plugin options.entries
+                if (entries && entries instanceof Array && !entries.includes(key))
+                    return;
+                entry[key] = utils.prependToEntry(filePaths, entry[key], entries);
             });
             return entry;
         } else if (typeof entry === 'function') {
             return function () {
-                return Promise.resolve(entry()).then((entry) => utils.prependToEntry(filePaths, entry));
+                return Promise.resolve(entry()).then((entry) => utils.prependToEntry(filePaths, entry, entries));
             };
         } else
             throw new TypeError('Error entry type: ' + typeof entry);
@@ -52,7 +55,7 @@ const utils = {
     /**
      * Append an entry or entries to webpack option
      */
-    appendToEntry(filePaths, entry) {
+    appendToEntry(filePaths, entry, entries) {
         if (typeof filePaths === 'string')
             filePaths = [filePaths];
 
@@ -62,12 +65,14 @@ const utils = {
             return [].concat(entry, filePaths);
         else if (typeof entry === 'object') {
             Object.keys(entry).forEach((key) => {
-                entry[key] = utils.appendToEntry(filePaths, entry[key]);
+                if (entries && entries instanceof Array && !entries.includes(key))
+                    return;
+                entry[key] = utils.appendToEntry(filePaths, entry[key], entries);
             });
             return entry;
         } else if (typeof entry === 'function') {
             return function () {
-                return Promise.resolve(entry()).then((entry) => utils.appendToEntry(filePaths, entry));
+                return Promise.resolve(entry()).then((entry) => utils.appendToEntry(filePaths, entry, entries));
             };
         } else
             throw new TypeError('Error entry type: ' + typeof entry);
