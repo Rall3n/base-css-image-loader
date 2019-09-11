@@ -1,7 +1,7 @@
 {
   "name": "base-css-image-loader",
   "description": "A base loader for processing images in CSS",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "author": "moujintao <moujintaotest@163.com>",
   "scripts": {
     "lint": "eslint ./src --fix",
