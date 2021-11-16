@@ -12,7 +12,7 @@ describe('Webpack Integration Test: runtime-module', () => {
 
             expect(compiler.options.entry).to.eql({
                 bundle: [
-                    path.resolve(data.cwdPath, 'insert.js'),
+                    path.resolve(__dirname, 'insert.js'),
                     './index.js',
                 ],
             });
