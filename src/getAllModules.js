@@ -6,7 +6,7 @@ try {
 } catch (e) { }
 
 function getAllModules(compilation) {
-    let modules = compilation.modules;
+    let modules = Array.from(compilation.modules);
     if (compilation.children.length) {
         const childModulesList = compilation.children.map(getAllModules);
         modules = modules.concat(...childModulesList);

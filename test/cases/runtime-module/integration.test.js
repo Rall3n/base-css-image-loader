@@ -10,12 +10,18 @@ describe('Webpack Integration Test: runtime-module', () => {
             if (err)
                 return done(err);
 
-            expect(compiler.options.entry).to.eql({
+            const equal = {
                 bundle: [
                     path.resolve(__dirname, 'insert.js'),
                     './index.js',
                 ],
-            });
+            };
+
+            expect(compiler.options.entry).to.eql(('webpack' in compiler) ? {
+                bundle: {
+                    import: equal.bundle,
+                },
+            } : equal);
 
             const content = fs.readFileSync(path.resolve(data.outputPath, 'bundle.js'), 'utf8');
             expect(content.includes("console.log('runtime-module')")).to.be.true;

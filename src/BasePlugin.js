@@ -2,7 +2,6 @@
 
 const { asyncHooks } = require('./hooks');
 const ReplaceDependency = require('./ReplaceDependency');
-const ReplaceSource = require('webpack-sources').ReplaceSource;
 const NullFactory = require('webpack/lib/NullFactory');
 const getAllModules = require('./getAllModules');
 const utils = require('./utils');
@@ -27,12 +26,19 @@ class BasePlugin {
         this.data = {};
     }
 
-    plugin(obj, name, callback) {
+    plugin(obj, name, callback, options) {
         if (obj.hooks) {
             if (asyncHooks.includes(name))
-                obj.hooks[name].tapAsync(this.PLUGIN_NAME, callback);
-            else
-                obj.hooks[name].tap(this.PLUGIN_NAME, callback);
+                obj.hooks[name].tapAsync({
+                    name: this.PLUGIN_NAME,
+                    ...options,
+                }, callback);
+            else {
+                obj.hooks[name].tap({
+                    name: this.PLUGIN_NAME,
+                    ...options,
+                }, callback);
+            }
         } else {
             name = name.replace(/([A-Z])/g, (m, $1) => '-' + $1.toLowerCase());
             obj.plugin(name, callback);
@@ -45,24 +51,36 @@ class BasePlugin {
                 compiler.options.entry = utils.prependToEntry(this.RUNTIME_MODULES, compiler.options.entry, this.options.entries);
         });
         this.plugin(compiler, 'thisCompilation', (compilation, params) => {
+            const useLegacy = !('processAssets' in compilation.hooks);
+
             compilation.dependencyFactories.set(ReplaceDependency, new NullFactory());
             compilation.dependencyTemplates.set(ReplaceDependency, ReplaceDependency.Template);
             // When data are ready to replace
             if (!this.REPLACE_AFTER_OPTIMIZE_TREE) {
                 this.plugin(compilation, 'afterOptimizeChunks', (chunks, chunkGroups) => this.replaceInModules(chunks, compilation));
-                this.plugin(compilation, 'optimizeExtractedChunks', (chunks) => this.replaceInExtractedModules(chunks));
+                this.plugin(compilation, useLegacy ? 'optimizeExtractedChunks' : 'renderManifest', (chunks) => this.replaceInExtractedModules(chunks));
             } else {
                 this.plugin(compilation, 'afterOptimizeTree', (chunks, modules) => this.replaceInModules(chunks, compilation));
-                this.plugin(compilation, 'optimizeChunkAssets', (chunks, callback) => {
-                    this.replaceInCSSAssets(chunks, compilation);
+                this.plugin(compilation, useLegacy ? 'optimizeChunkAssets' : 'processAssets', (compilationAssets, callback) => {
+                    this.replaceInCSSAssets(compilation.chunks, compilation);
                     callback();
+                }, !useLegacy && {
+                    stage: compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
                 });
             }
         });
         this.plugin(compiler, 'compilation', (compilation, params) => {
-            this.plugin(compilation, 'normalModuleLoader', (loaderContext, module) => {
-                loaderContext[this.PLUGIN_NAME] = this;
-            });
+            const { NormalModule } = compiler.webpack || { NormalModule: false };
+
+            if (NormalModule) {
+                NormalModule.getCompilationHooks(compilation).loader.tap(this.PLUGIN_NAME, (loaderContext, module) => {
+                    loaderContext[this.PLUGIN_NAME] = this;
+                });
+            } else {
+                this.plugin(compilation, 'normalModuleLoader', (loaderContext, module) => {
+                    loaderContext[this.PLUGIN_NAME] = this;
+                });
+            }
         });
     }
 
@@ -71,7 +89,7 @@ class BasePlugin {
         const allModules = getAllModules(compilation);
         allModules.forEach((module) => {
             const identifier = module.identifier();
-            if (/^css[\s]+/g.test(identifier)) {
+            if (/^css[\s|]+/g.test(identifier)) {
                 if (module.content) {
                     const content = module.content;
                     module.content = this.replaceHolderToString(content);
@@ -108,6 +126,9 @@ class BasePlugin {
     }
 
     replaceInCSSAssets(chunks, compilation) {
+        const { webpack = false } = compilation.compiler;
+        const ReplaceSource = webpack ? webpack.sources.ReplaceSource : require('webpack-sources').ReplaceSource;
+
         chunks.forEach((chunk) => {
             chunk.files.forEach((file) => {
                 if (!file.endsWith('.css'))
@@ -118,7 +139,7 @@ class BasePlugin {
                 const ranges = this.replaceHolderToRanges(source.source());
                 for (const range of ranges)
                     replaceSource.replace(range[0], range[1], range[2]);
-                compilation.assets[file] = replaceSource;
+                this.emitAsset(compilation, file, replaceSource);
             });
         });
     }
@@ -137,10 +158,17 @@ class BasePlugin {
     }
 
     replaceHolderToString(source) {
-        return source.replace(this.REPLACER_RE, (...args) => {
+        const isBuff = source instanceof Buffer;
+
+        if (isBuff)
+            source = source.toString();
+
+        source = source.replace(this.REPLACER_RE, (...args) => {
             const m = args[0];
             return this.REPLACER_FUNC(...args.slice(1, -2)) || m;
         });
+
+        return isBuff ? Buffer.from(source) : source;
     }
 
     /**
@@ -190,6 +218,23 @@ class BasePlugin {
         const path = this.getOutputPath(fileName);
         const url = this.getOutputURL(fileName, compilation);
         return { fileName, path, url };
+    }
+
+    /**
+     * @param {import('webpack').Compilation} compilation
+     * @param {string} filename
+     * @param {import('webpack-sources').SourceLike} source
+     */
+    emitAsset(compilation, filename, source) {
+        const { webpack = false } = compilation.compiler;
+
+        const isWebpack4 = !webpack || typeof compilation.compiler.resolvers !== 'undefined';
+
+        if (!isWebpack4) {
+            compilation.emitAsset(filename, source);
+        } else {
+            compilation.assets[filename] = source;
+        }
     }
 }
 
