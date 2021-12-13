@@ -58,7 +58,13 @@ class BasePlugin {
             // When data are ready to replace
             if (!this.REPLACE_AFTER_OPTIMIZE_TREE) {
                 this.plugin(compilation, 'afterOptimizeChunks', (chunks, chunkGroups) => this.replaceInModules(chunks, compilation));
-                this.plugin(compilation, useLegacy ? 'optimizeExtractedChunks' : 'renderManifest', (chunks) => this.replaceInExtractedModules(chunks));
+                this.plugin(compilation, useLegacy ? 'optimizeExtractedChunks' : 'renderManifest', (chunks) => {
+                    // `renderManifest` hook provides `RenderManifestEntries` instead of `Chunks`, so we need to map
+                    if (!useLegacy)
+                        chunks = chunks.map((entry) => entry.pathOptions.chunk);
+
+                    this.replaceInExtractedModules(chunks, compilation);
+                });
             } else {
                 this.plugin(compilation, 'afterOptimizeTree', (chunks, modules) => this.replaceInModules(chunks, compilation));
                 this.plugin(compilation, useLegacy ? 'optimizeChunkAssets' : 'processAssets', (compilationAssets, callback) => {
@@ -112,9 +118,17 @@ class BasePlugin {
         });
     }
 
-    replaceInExtractedModules(chunks) {
+    replaceInExtractedModules(chunks, compilation) {
+        const chunkGraph = compilation.chunkGraph || false;
         chunks.forEach((chunk) => {
-            const modules = !chunk.mapModules ? chunk._modules : chunk.mapModules();
+            let modules = [];
+
+            if (chunkGraph) {
+                modules = Array.from(chunkGraph.getChunkModulesIterable(chunk));
+            } else {
+                modules = !chunk.mapModules ? chunk._modules : chunk.mapModules();
+            }
+
             modules.filter((module) => '_originalModule' in module).forEach((module) => {
                 const source = module._source;
                 if (typeof source === 'string')
