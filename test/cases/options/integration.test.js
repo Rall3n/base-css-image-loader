@@ -10,7 +10,7 @@ describe('Webpack Integration Test: options', () => {
             if (err)
                 return done(err);
             const content = fs.readFileSync(path.resolve(data.outputPath, 'bundle.css'), 'utf8');
-            expect(/\/\/kaola.nos.netease.com\/public\/test1-test.png\?eb5f43c64990934cf3a32ab5fbe51558/g.test(content)).to.be.true;
+            expect(/\/\/kaola.nos.netease.com\/public\/test1-test.png\?2de3ba2cfcbe568802ba045f5c3c8ca9/g.test(content)).to.be.true;
             done();
         });
     });

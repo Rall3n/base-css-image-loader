@@ -36,9 +36,9 @@ describe('Unit Test: utils', () => {
 
     it('.createFileName(placeholder, data)', () => {
         const cases = [
-            ['[fileName].[ext]?[hash]', { fileName: 'demo', ext: 'css', content: file }, 'demo.css?c3639561deadee9c232f48c37a558b8b'],
-            ['[fileName]_[hash:16].[ext]', { fileName: 'demo', ext: 'css', content: file }, 'demo_c3639561deadee9c.css'],
-            ['[fileName].[hash:base64:8].[ext]', { fileName: 'demo', ext: 'css', content: file }, 'demo.2byRlWMQ.css'],
+            ['[fileName].[ext]?[hash]', { fileName: 'demo', ext: 'css', content: file }, 'demo.css?187e02cc24e4173f551b6b8fd65f890e'],
+            ['[fileName]_[hash:16].[ext]', { fileName: 'demo', ext: 'css', content: file }, 'demo_187e02cc24e4173f.css'],
+            ['[fileName].[hash:base64:8].[ext]', { fileName: 'demo', ext: 'css', content: file }, 'demo.GH4CzCTk.css'],
         ];
         cases.forEach((_case) => {
             const result = utils.createFileName(_case[0], _case[1]);
